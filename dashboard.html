@@ -5,10 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Priority Task Maker - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     
     <style>
+        /* INLINE STYLES FOR ELEMENTS NOT YET IN CSS FILE */
+        
+        /* Mobile Menu Button - Hidden on Desktop */
+        #mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer; margin-right: 15px; }
+
+        /* Mobile Back Button - Hidden on Desktop */
+        #mobile-close-p3 { display: none; width: 100%; margin-bottom: 20px; text-align: left; }
+        
+        /* Show these only on Mobile */
+        @media (max-width: 900px) {
+            #mobile-menu-btn { display: block; }
+            #mobile-close-p3 { display: block; }
+        }
+
         /* 1. SEARCH SUGGESTIONS */
         .search-container { position: relative; width: 100%; margin-bottom: 20px; }
         .suggestions-box {
@@ -132,8 +146,16 @@
 
         <main class="main-p2">
             <header class="p2-header">
-                <h1 id="p2-title">Today</h1>
-                <p id="p2-subtitle">Tasks for the next 48 hours</p>
+                <div style="display:flex; align-items:center; width:100%;">
+                    <button id="mobile-menu-btn" onclick="document.querySelector('.sidebar-p1').classList.toggle('active'); document.querySelector('.overlay').classList.toggle('active');">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div>
+                        <h1 id="p2-title">Today</h1>
+                        <p id="p2-subtitle">Tasks for the next 48 hours</p>
+                    </div>
+                </div>
             </header>
 
             <div id="p2-task-container" class="task-list-area"></div>
@@ -147,6 +169,10 @@
         <aside class="details-p3">
             
             <div id="p3-default-view">
+                <button class="secondary-btn" id="mobile-close-p3" onclick="document.querySelector('.details-p3').classList.remove('active')">
+                    <i class="fas fa-arrow-left"></i> Back to Tasks
+                </button>
+
                 <div class="p3-header">
                     <div class="theme-switch-wrapper">
                         <label class="theme-switch" for="theme-toggle-input">
@@ -186,6 +212,10 @@
             </div>
 
             <div id="p3-task-details" style="display: none;">
+                <button class="secondary-btn" id="mobile-close-p3" onclick="document.querySelector('.details-p3').classList.remove('active')" style="margin-bottom:15px; display:none;">
+                   <i class="fas fa-arrow-left"></i> Back
+                </button>
+
                 <div class="p3-header">
                     <h3>Task Details</h3>
                     <button id="close-details-btn" class="secondary-btn"><i class="fas fa-times"></i></button>
@@ -214,6 +244,9 @@
         </aside>
 
     </div>
+
+    <div class="overlay" onclick="document.querySelector('.sidebar-p1').classList.remove('active'); document.querySelector('.overlay').classList.remove('active');" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:900;"></div>
+
 
     <div id="task-modal" class="modal">
         <div class="modal-content task-creator">
@@ -307,5 +340,17 @@
     </div>
 
     <script type="module" src="js/dashboard.js"></script>
+    
+    <script>
+        document.querySelectorAll('.p3-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 900) {
+                    // Close sidebar if open
+                    document.querySelector('.sidebar-p1').classList.remove('active');
+                    document.querySelector('.overlay').classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
