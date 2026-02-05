@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Task Maker - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <style>
+        /* 1. SEARCH SUGGESTIONS */
+        .search-container { position: relative; width: 100%; margin-bottom: 20px; }
+        .suggestions-box {
+            position: absolute; top: 100%; left: 0; width: 100%;
+            background: #2d2d2d; border: 1px solid #444; border-radius: 0 0 8px 8px;
+            z-index: 100; display: none; max-height: 200px; overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .suggestion-item {
+            padding: 10px; cursor: pointer; border-bottom: 1px solid #333;
+            font-size: 0.9rem; color: #ccc; display: flex; align-items: center; gap: 10px;
+        }
+        .suggestion-item:hover { background: #3a86ff; color: white; }
+
+        /* 2. P3 MENU BUTTONS */
+        .p3-menu-item {
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .p3-menu-item:hover {
+            background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); transform: translateX(5px);
+        }
+        .p3-menu-item i { font-size: 1.2rem; width: 25px; text-align: center; }
+        .p3-menu-item span { flex-grow: 1; font-weight: 500; }
+
+        /* 3. TRACE MODAL (21 DAYS) */
+        .trace-content { width: 800px; max-width: 95%; }
+        .trace-scroll-container { max-height: 60vh; overflow-y: auto; margin-top: 20px; }
+        .trace-grid-layout {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px;
+        }
+        .day-card {
+            background: #252525; padding: 10px; border-radius: 8px; text-align: center;
+            border: 1px solid #333; display: flex; flex-direction: column; align-items: center;
+        }
+        .day-date { font-size: 0.7rem; color: #888; margin-bottom: 5px; }
+        .progress-circle {
+            width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; color: black; font-size: 0.8rem;
+            margin: 5px 0; border: 2px solid rgba(255,255,255,0.1);
+        }
+        .circle-red { background: #ff4d4d; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
+        .circle-yellow { background: #ffbe0b; box-shadow: 0 0 10px rgba(255, 190, 11, 0.4); }
+        .circle-green { background: #00ff00; box-shadow: 0 0 10px rgba(0, 255, 0, 0.4); }
+        .day-stats { font-size: 0.6rem; color: #ccc; margin-top: 5px; }
+
+        /* 4. DRAGGABLE STEPS */
+        .draggable-list { list-style: none; padding: 0; margin: 10px 0; max-height: 150px; overflow-y: auto; }
+        .step-item {
+            background: rgba(255,255,255,0.05); padding: 8px 10px; margin-bottom: 5px;
+            border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
+            cursor: grab; border: 1px solid transparent;
+        }
+        .step-item:active { cursor: grabbing; border-color: #3a86ff; }
+        .step-item.dragging { opacity: 0.5; background: #333; }
+        
+        /* 5. WORD LIMITS */
+        .limit-counter { font-size: 0.7rem; color: #888; text-align: right; margin-top: 2px; }
+        .limit-error { color: #ff4d4d; }
+
+        /* 6. P3 LINKS */
+        .desc-box { white-space: pre-wrap; color: #ccc; font-size: 0.9rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+        .desc-box a { color: #3a86ff; text-decoration: underline; word-break: break-all; }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div class="app-grid">
+        
+        <aside class="sidebar-p1">
+            <div class="user-profile-section">
+                <h2 id="p1-username">Loading...</h2>
+                <p id="p1-email">...</p>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="task-search" placeholder="Search tasks..." autocomplete="off">
+                </div>
+                <div id="search-suggestions" class="suggestions-box"></div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" data-filter="today">
+                    <i class="fas fa-sun" style="color: #ff4d4d;"></i>
+                    <span>Today <small>(Next 48h)</small></span>
+                </div>
+                <div class="nav-item" data-filter="priority2">
+                    <i class="fas fa-calendar-week" style="color: #ff9f1c;"></i>
+                    <span>Priority 2 <small>(2-4 Days)</small></span>
+                </div>
+                <div class="nav-item" data-filter="priority3">
+                    <i class="fas fa-calendar-alt" style="color: #2ec4b6;"></i>
+                    <span>Priority 3 <small>(4-120 Days)</small></span>
+                </div>
+                <div class="nav-item" data-filter="all">
+                    <i class="fas fa-layer-group" style="color: #3a86ff;"></i>
+                    <span>All Tasks</span>
+                </div>
+                <div class="nav-item" data-filter="routine">
+                    <i class="fas fa-sync-alt" style="color: #8338ec;"></i>
+                    <span>Daily Routine</span>
+                </div>
+            </nav>
+
+            <div class="divider"></div>
+
+            <div class="my-lists-header">
+                <span>My Lists</span>
+                <span id="list-count">0/50</span>
+            </div>
+            <div id="my-lists-container" class="scrollable-lists"></div>
+
+            <button id="create-list-btn" class="sidebar-btn">
+                <i class="fas fa-plus"></i> New List
+            </button>
+        </aside>
+
+
+        <main class="main-p2">
+            <header class="p2-header">
+                <h1 id="p2-title">Today</h1>
+                <p id="p2-subtitle">Tasks for the next 48 hours</p>
+            </header>
+
+            <div id="p2-task-container" class="task-list-area"></div>
+
+            <button id="add-task-fab" class="add-task-btn">
+                <i class="fas fa-plus"></i> Add a Task
+            </button>
+        </main>
+
+
+        <aside class="details-p3">
+            
+            <div id="p3-default-view">
+                <div class="p3-header">
+                    <div class="theme-switch-wrapper">
+                        <label class="theme-switch" for="theme-toggle-input">
+                            <input type="checkbox" id="theme-toggle-input" checked>
+                            <div class="slider round"></div>
+                        </label>
+                        <span id="mode-label" style="font-size:0.8rem; margin-left:5px;">Dark</span>
+                    </div>
+
+                    <div class="user-avatar-container" id="user-avatar-btn">
+                        <img id="user-avatar-img" src="" alt="User">
+                        <div class="user-dropdown" id="user-dropdown">
+                            <div id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: #666; font-size: 0.9rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Menu</h3>
+
+                <div class="p3-menu-item" id="btn-task-trace">
+                    <i class="fas fa-chart-line" style="color: #3a86ff;"></i>
+                    <span>Task Trace</span>
+                    <i class="fas fa-chevron-right" style="color: #555; font-size: 0.8rem;"></i>
+                </div>
+
+                <div class="p3-menu-item" id="btn-routine-trace">
+                    <i class="fas fa-sync-alt" style="color: #8338ec;"></i>
+                    <span>Routine Check</span>
+                    <i class="fas fa-chevron-right" style="color: #555; font-size: 0.8rem;"></i>
+                </div>
+
+                <div class="p3-menu-item" id="btn-user-manual">
+                    <i class="fas fa-book" style="color: #ff006e;"></i>
+                    <span>User Manual</span>
+                    <i class="fas fa-chevron-right" style="color: #555; font-size: 0.8rem;"></i>
+                </div>
+            </div>
+
+            <div id="p3-task-details" style="display: none;">
+                <div class="p3-header">
+                    <h3>Task Details</h3>
+                    <button id="close-details-btn" class="secondary-btn"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="detail-content">
+                    <h2 id="detail-title">Task Title</h2>
+                    <div class="detail-meta">
+                        <span id="detail-date"></span>
+                        <span id="detail-routine-badge" style="display:none; color: #8338ec;">
+                            <i class="fas fa-sync"></i> Daily Routine
+                        </span>
+                    </div>
+
+                    <label style="color:#888; font-size:0.8rem;">Description</label>
+                    <div id="detail-desc" class="desc-box"></div>
+
+                    <label style="color:#888; font-size:0.8rem;">Sub-tasks</label>
+                    <ul id="detail-steps" class="steps-list-view"></ul>
+                    
+                    <button id="delete-open-task-btn" class="delete-btn-large">
+                        <i class="fas fa-trash"></i> Delete Task
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <div id="task-modal" class="modal">
+        <div class="modal-content task-creator">
+            <h2 id="modal-heading">Add New Task</h2>
+            <div class="input-group">
+                <input type="text" id="task-title" placeholder="Title" required>
+                <div class="limit-counter" id="title-counter">0/30 words</div>
+            </div>
+            <div class="input-group">
+                <textarea id="task-desc" placeholder="Description (Paste links here)..." rows="4"></textarea>
+                <div class="limit-counter" id="desc-counter">0/1000 words</div>
+            </div>
+            <div class="steps-section">
+                <label>Sub-tasks (Drag to reorder)</label>
+                <ul id="steps-list" class="draggable-list"></ul>
+                <div class="step-input-row">
+                    <input type="text" id="new-step-input" placeholder="Add step...">
+                    <button id="add-step-btn" class="small-btn"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="file-section">
+                <label>Attachment (Image)</label>
+                <input type="file" id="task-file" accept="image/*">
+            </div>
+            <div class="date-row" id="date-section-container">
+                <div>
+                    <label>Start Date</label>
+                    <input type="datetime-local" id="task-start">
+                </div>
+                <div>
+                    <label>Due Date</label>
+                    <input type="datetime-local" id="task-due">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-task" class="secondary-btn">Cancel</button>
+                <button id="save-task" class="main-btn">Submit Task</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="list-modal" class="modal">
+        <div class="modal-content list-creator">
+            <h2>Create New List</h2>
+            <input type="text" id="list-name-input" placeholder="List Name" maxlength="20">
+            <div class="modal-actions">
+                <button id="cancel-list" class="secondary-btn">Cancel</button>
+                <button id="save-list" class="main-btn">Create List</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #ff4d4d; margin-bottom: 20px;"></i>
+            <h3>Are you sure?</h3>
+            <p style="color: #888; margin-bottom: 25px;">This cannot be undone.</p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button id="confirm-delete-no" class="secondary-btn" style="border: 1px solid #555; padding: 10px 30px;">No</button>
+                <button id="confirm-delete-yes" class="main-btn" style="background: #ff4d4d; padding: 10px 30px;">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="trace-modal" class="modal">
+        <div class="modal-content trace-content">
+            <h2 id="trace-modal-title">Task Trace</h2>
+            <div class="trace-scroll-container">
+                <div id="trace-cards-container" class="trace-grid-layout">
+                    </div>
+            </div>
+            <div class="modal-actions">
+                <button id="close-trace-btn" class="main-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2>User Manual</h2>
+            <ul style="line-height: 1.8; color: #ccc; margin-top: 15px; padding-left: 20px;">
+                <li><strong>Today:</strong> Tasks expiring < 48 hours. Red = Urgent.</li>
+                <li><strong>Routine:</strong> Resets automatically at 12:01 AM.</li>
+                <li><strong>Trace:</strong> Tracks your completion % for the last 21 days.</li>
+                <li><strong>Colors:</strong> Red (0-60%), Yellow (60-80%), Green (80%+).</li>
+            </ul>
+            <div class="modal-actions">
+                <button id="close-help-btn" class="main-btn">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
