@@ -231,7 +231,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 
 /* ==========================================================================
-   MOBILE & TABLET RESPONSIVENESS (FIXED)
+   MOBILE & TABLET RESPONSIVENESS (FIXED SCROLL & NAVIGATION)
    ========================================================================== */
 
 /* 1. Mobile Close Button (Hidden on Desktop) */
@@ -251,12 +251,16 @@ input:checked + .slider:before { transform: translateX(26px); }
     .sidebar-p1 {
         position: fixed;
         top: 0; left: -100%; /* Hidden */
-        width: 85%; /* Slightly wider for better view */
-        height: 100dvh; /* Uses dynamic viewport height */
-        z-index: 2000; /* Super high to stay on top */
+        width: 85%; /* Slightly wider */
+        height: 100dvh; /* Dynamic Height */
+        z-index: 2000;
         transition: 0.3s ease;
         box-shadow: 10px 0 30px rgba(0,0,0,0.5);
-        padding-top: 60px; /* Space for the X button */
+        padding-top: 60px; /* Space for X button */
+        
+        /* SCROLLING FIX */
+        overflow-y: auto !important; 
+        padding-bottom: 50px;
     }
     .sidebar-p1.active { left: 0; }
 
@@ -284,7 +288,7 @@ input:checked + .slider:before { transform: translateX(26px); }
     /* --- P2: MAIN TASK AREA --- */
     .main-p2 {
         width: 100%;
-        height: 100dvh; /* Fixes address bar cutting things off */
+        height: 100dvh; 
     }
 
     .p2-header { padding: 15px 20px; }
@@ -292,25 +296,25 @@ input:checked + .slider:before { transform: translateX(26px); }
     
     .task-list-area { 
         padding: 15px; 
-        padding-bottom: 100px; /* Extra space so FAB doesn't cover tasks */
+        padding-bottom: 100px; 
     }
 
     /* FIX "Add Task" FAB (Floating Button) */
     .add-task-btn {
-        position: fixed; /* FIXED means it stays on screen when scrolling */
+        position: fixed; 
         bottom: 20px; 
         right: 20px;
-        width: 55px; height: 55px; /* Circle shape */
+        width: 55px; height: 55px; 
         border-radius: 50%;
         padding: 0;
         display: flex; align-items: center; justify-content: center;
-        font-size: 0; /* Hide text "Add Task" */
-        z-index: 1500; /* Above everything */
+        font-size: 0; /* Hide text */
+        z-index: 1500; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     /* Show Icon inside FAB */
     .add-task-btn i {
-        font-size: 1.5rem; /* Big Plus Icon */
+        font-size: 1.5rem; 
         margin: 0;
     }
 
@@ -322,6 +326,7 @@ input:checked + .slider:before { transform: translateX(26px); }
         height: 100dvh;
         z-index: 2000;
         transition: 0.3s ease;
+        overflow-y: auto; /* Allow scrolling inside P3 */
     }
     .details-p3.active { right: 0; }
 
@@ -338,7 +343,7 @@ input:checked + .slider:before { transform: translateX(26px); }
     .overlay {
         display: none;
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.6); z-index: 1800; /* Just below sidebar */
+        background: rgba(0,0,0,0.6); z-index: 1800; 
         backdrop-filter: blur(2px);
     }
     .overlay.active { display: block; }
