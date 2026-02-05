@@ -22,7 +22,7 @@ body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     color: var(--text-main);
-    overflow: hidden; /* App feel on Desktop */
+    overflow: hidden; 
 }
 
 /* DESKTOP LAYOUT (Default) */
@@ -141,7 +141,7 @@ body {
 .task-info h4 { margin: 0; font-size: 1rem; }
 .task-info p { margin: 0; font-size: 0.8rem; opacity: 0.7; }
 
-/* Add Task FAB */
+/* Add Task FAB (Desktop Style) */
 .add-task-btn {
     position: absolute;
     bottom: 30px;
@@ -231,69 +231,115 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 
 /* ==========================================================================
-   MOBILE & TABLET RESPONSIVENESS (The Critical Fix)
+   MOBILE & TABLET RESPONSIVENESS (FIXED)
    ========================================================================== */
 
+/* 1. Mobile Close Button (Hidden on Desktop) */
+.mobile-close-btn {
+    display: none;
+}
+
 @media (max-width: 900px) {
-    /* 1. Stack the Grid */
+    /* --- LAYOUT STACKING --- */
     .app-grid {
-        display: block; /* Removes Grid behavior */
-        position: relative;
+        display: block; 
+        height: auto;
         overflow-x: hidden;
     }
 
-    /* 2. Sidebar P1 (Hidden by default, slides in) */
+    /* --- P1: SIDEBAR NAVIGATION --- */
     .sidebar-p1 {
         position: fixed;
-        top: 0; left: -100%; /* Hidden off-screen */
-        width: 80%; /* Takes mostly whole screen */
-        height: 100vh;
-        z-index: 1000;
+        top: 0; left: -100%; /* Hidden */
+        width: 85%; /* Slightly wider for better view */
+        height: 100dvh; /* Uses dynamic viewport height */
+        z-index: 2000; /* Super high to stay on top */
         transition: 0.3s ease;
-        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        padding-top: 60px; /* Space for the X button */
     }
-    .sidebar-p1.active { left: 0; } /* Class to show it */
+    .sidebar-p1.active { left: 0; }
 
-    /* 3. Main P2 (Takes full screen) */
+    /* CLOSE BUTTON (Visible only on Mobile) */
+    .mobile-close-btn {
+        display: block;
+        position: absolute;
+        top: 15px; right: 15px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        width: 35px; height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    /* FIX "New List" BUTTON SIZE */
+    .sidebar-btn {
+        padding: 10px; /* Smaller padding */
+        font-size: 0.9rem; /* Smaller text */
+        margin-bottom: 20px; /* Space from bottom */
+    }
+
+    /* --- P2: MAIN TASK AREA --- */
     .main-p2 {
         width: 100%;
-        height: 100vh;
+        height: 100dvh; /* Fixes address bar cutting things off */
     }
 
-    /* Show Hamburger Menu */
-    #mobile-menu-btn { display: block; }
-    .p2-header { padding: 20px; }
-    .p2-header h1 { font-size: 1.5rem; }
+    .p2-header { padding: 15px 20px; }
+    .p2-header h1 { font-size: 1.4rem; }
+    
+    .task-list-area { 
+        padding: 15px; 
+        padding-bottom: 100px; /* Extra space so FAB doesn't cover tasks */
+    }
 
-    .task-list-area { padding: 15px; }
+    /* FIX "Add Task" FAB (Floating Button) */
+    .add-task-btn {
+        position: fixed; /* FIXED means it stays on screen when scrolling */
+        bottom: 20px; 
+        right: 20px;
+        width: 55px; height: 55px; /* Circle shape */
+        border-radius: 50%;
+        padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0; /* Hide text "Add Task" */
+        z-index: 1500; /* Above everything */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    /* Show Icon inside FAB */
+    .add-task-btn i {
+        font-size: 1.5rem; /* Big Plus Icon */
+        margin: 0;
+    }
 
-    /* 4. Details P3 (Full screen modal style) */
+    /* --- P3: DETAILS PANEL --- */
     .details-p3 {
         position: fixed;
-        top: 0; right: -100%; /* Hidden off-screen */
+        top: 0; right: -100%;
         width: 100%;
-        height: 100vh;
-        z-index: 1000;
+        height: 100dvh;
+        z-index: 2000;
         transition: 0.3s ease;
     }
     .details-p3.active { right: 0; }
 
-    /* FAB Button Adjustment */
-    .add-task-btn {
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        font-size: 0.9rem;
+    /* --- MODALS (Make them fit) --- */
+    .modal-content {
+        width: 90%;
+        margin: 10px;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 20px;
     }
-
-    /* Adjust Modals */
-    .modal-content { width: 95%; margin: 0 auto; padding: 20px; }
     
-    /* Close Button for Sidebar (We need to add this to JS logic or simply tap outside) */
+    /* Overlay for clicking outside */
     .overlay {
         display: none;
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 900;
+        background: rgba(0,0,0,0.6); z-index: 1800; /* Just below sidebar */
+        backdrop-filter: blur(2px);
     }
     .overlay.active { display: block; }
 }
