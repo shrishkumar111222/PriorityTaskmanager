@@ -114,6 +114,7 @@ taskSearchInput.addEventListener('input', (e) => {
                 taskSearchInput.value = "";
                 searchSuggestions.style.display = "none";
                 openTaskInP3(task);
+                closeSidebarMobile(); // Auto-close on mobile
             });
             searchSuggestions.appendChild(div);
         });
@@ -207,8 +208,14 @@ function openTraceModal(mode) {
 }
 
 // ==================== 6. P3 BUTTON EVENTS ====================
-btnTaskTrace.addEventListener('click', () => openTraceModal('task'));
-btnRoutineTrace.addEventListener('click', () => openTraceModal('routine'));
+btnTaskTrace.addEventListener('click', () => {
+    openTraceModal('task');
+    closeSidebarMobile(); // Ensure menu is closed
+});
+btnRoutineTrace.addEventListener('click', () => {
+    openTraceModal('routine');
+    closeSidebarMobile();
+});
 
 btnUserManual.addEventListener('click', () => {
     helpModal.style.display = "flex";
@@ -426,7 +433,10 @@ function renderTasks(filterType, searchQuery = "") {
         `;
 
         taskEl.addEventListener('click', (e) => {
-            if(e.target.type !== 'checkbox' && !e.target.closest('.task-actions')) openTaskInP3(task);
+            if(e.target.type !== 'checkbox' && !e.target.closest('.task-actions')) {
+                openTaskInP3(task);
+                closeSidebarMobile(); // Close sidebar if open
+            }
         });
 
         taskEl.querySelector('.task-check').addEventListener('change', (e) => {
@@ -550,7 +560,13 @@ function renderLists() {
         div.className = "nav-item";
         div.id = `nav-list-${list.id}`; 
         div.innerHTML = `<i class="fas fa-list"></i> <span>${list.name}</span>`;
-        div.addEventListener('click', () => renderTasks(`list_${list.id}`));
+        
+        // --- MOBILE FIX: Close Sidebar when List is Clicked ---
+        div.addEventListener('click', () => {
+            renderTasks(`list_${list.id}`);
+            closeSidebarMobile(); 
+        });
+        
         listContainer.appendChild(div);
     });
 }
@@ -559,9 +575,20 @@ function renderLists() {
 staticNavItems.forEach(item => {
     item.addEventListener('click', () => {
         const filter = item.getAttribute('data-filter');
-        if (filter) renderTasks(filter);
+        if (filter) {
+            renderTasks(filter);
+            closeSidebarMobile(); // --- MOBILE FIX: Close Sidebar here too ---
+        }
     });
 });
+
+// --- NEW HELPER: Force close mobile sidebar ---
+function closeSidebarMobile() {
+    if (window.innerWidth <= 900) {
+        document.querySelector('.sidebar-p1').classList.remove('active');
+        document.querySelector('.overlay').classList.remove('active');
+    }
+}
 
 // THEME TOGGLE LISTENER
 if (themeToggleInput) {
