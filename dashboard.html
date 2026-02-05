@@ -9,21 +9,39 @@
     <link rel="stylesheet" href="css/dashboard.css">
     
     <style>
-        /* INLINE STYLES FOR ELEMENTS NOT YET IN CSS FILE */
+        /* CRITICAL INLINE STYLES FOR MOBILE ELEMENTS */
         
-        /* Mobile Menu Button - Hidden on Desktop */
-        #mobile-menu-btn { display: none; background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer; margin-right: 15px; }
+        /* 1. Mobile Menu Button (Hamburger) - Hidden on Desktop */
+        #mobile-menu-btn { 
+            display: none; 
+            background: none; 
+            border: none; 
+            font-size: 1.5rem; 
+            color: var(--text-main); 
+            cursor: pointer; 
+            margin-right: 15px; 
+        }
 
-        /* Mobile Back Button - Hidden on Desktop */
-        #mobile-close-p3 { display: none; width: 100%; margin-bottom: 20px; text-align: left; }
+        /* 2. Mobile Sidebar Close Button (X) - Hidden on Desktop */
+        .mobile-close-btn {
+            display: none; /* CSS will show this on mobile */
+        }
+
+        /* 3. Mobile Back Button for P3 - Hidden on Desktop */
+        #mobile-close-p3 { 
+            display: none; 
+            width: 100%; 
+            margin-bottom: 20px; 
+            text-align: left; 
+        }
         
-        /* Show these only on Mobile */
+        /* Show on Mobile Only */
         @media (max-width: 900px) {
             #mobile-menu-btn { display: block; }
             #mobile-close-p3 { display: block; }
         }
 
-        /* 1. SEARCH SUGGESTIONS */
+        /* INLINE CSS FOR SEARCH SUGGESTIONS */
         .search-container { position: relative; width: 100%; margin-bottom: 20px; }
         .suggestions-box {
             position: absolute; top: 100%; left: 0; width: 100%;
@@ -37,7 +55,7 @@
         }
         .suggestion-item:hover { background: #3a86ff; color: white; }
 
-        /* 2. P3 MENU BUTTONS */
+        /* P3 MENU ITEMS */
         .p3-menu-item {
             background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px;
             margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
@@ -49,42 +67,29 @@
         .p3-menu-item i { font-size: 1.2rem; width: 25px; text-align: center; }
         .p3-menu-item span { flex-grow: 1; font-weight: 500; }
 
-        /* 3. TRACE MODAL (21 DAYS) */
+        /* CIRCLE PROGRESS */
         .trace-content { width: 800px; max-width: 95%; }
         .trace-scroll-container { max-height: 60vh; overflow-y: auto; margin-top: 20px; }
-        .trace-grid-layout {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px;
-        }
-        .day-card {
-            background: #252525; padding: 10px; border-radius: 8px; text-align: center;
-            border: 1px solid #333; display: flex; flex-direction: column; align-items: center;
-        }
+        .trace-grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
+        .day-card { background: #252525; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; align-items: center; }
         .day-date { font-size: 0.7rem; color: #888; margin-bottom: 5px; }
-        .progress-circle {
-            width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-weight: bold; color: black; font-size: 0.8rem;
-            margin: 5px 0; border: 2px solid rgba(255,255,255,0.1);
-        }
+        .progress-circle { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; font-size: 0.8rem; margin: 5px 0; border: 2px solid rgba(255,255,255,0.1); }
         .circle-red { background: #ff4d4d; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
         .circle-yellow { background: #ffbe0b; box-shadow: 0 0 10px rgba(255, 190, 11, 0.4); }
         .circle-green { background: #00ff00; box-shadow: 0 0 10px rgba(0, 255, 0, 0.4); }
         .day-stats { font-size: 0.6rem; color: #ccc; margin-top: 5px; }
 
-        /* 4. DRAGGABLE STEPS */
+        /* LIMIT COUNTERS */
+        .limit-counter { font-size: 0.7rem; color: #888; text-align: right; margin-top: 2px; }
+        .limit-error { color: #ff4d4d; }
+        
+        /* DRAGGABLE LIST */
         .draggable-list { list-style: none; padding: 0; margin: 10px 0; max-height: 150px; overflow-y: auto; }
-        .step-item {
-            background: rgba(255,255,255,0.05); padding: 8px 10px; margin-bottom: 5px;
-            border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
-            cursor: grab; border: 1px solid transparent;
-        }
+        .step-item { background: rgba(255,255,255,0.05); padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; border: 1px solid transparent; }
         .step-item:active { cursor: grabbing; border-color: #3a86ff; }
         .step-item.dragging { opacity: 0.5; background: #333; }
         
-        /* 5. WORD LIMITS */
-        .limit-counter { font-size: 0.7rem; color: #888; text-align: right; margin-top: 2px; }
-        .limit-error { color: #ff4d4d; }
-
-        /* 6. P3 LINKS */
+        /* LINKS */
         .desc-box { white-space: pre-wrap; color: #ccc; font-size: 0.9rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px; }
         .desc-box a { color: #3a86ff; text-decoration: underline; word-break: break-all; }
     </style>
@@ -94,6 +99,10 @@
     <div class="app-grid">
         
         <aside class="sidebar-p1">
+            <button class="mobile-close-btn" onclick="document.querySelector('.sidebar-p1').classList.remove('active'); document.querySelector('.overlay').classList.remove('active');">
+                <i class="fas fa-times"></i>
+            </button>
+
             <div class="user-profile-section">
                 <h2 id="p1-username">Loading...</h2>
                 <p id="p1-email">...</p>
@@ -147,7 +156,7 @@
         <main class="main-p2">
             <header class="p2-header">
                 <div style="display:flex; align-items:center; width:100%;">
-                    <button id="mobile-menu-btn" onclick="document.querySelector('.sidebar-p1').classList.toggle('active'); document.querySelector('.overlay').classList.toggle('active');">
+                    <button id="mobile-menu-btn" onclick="document.querySelector('.sidebar-p1').classList.add('active'); document.querySelector('.overlay').classList.add('active');">
                         <i class="fas fa-bars"></i>
                     </button>
                     
@@ -212,7 +221,7 @@
             </div>
 
             <div id="p3-task-details" style="display: none;">
-                <button class="secondary-btn" id="mobile-close-p3" onclick="document.querySelector('.details-p3').classList.remove('active')" style="margin-bottom:15px; display:none;">
+                <button class="secondary-btn" id="mobile-close-p3" onclick="document.querySelector('.details-p3').classList.remove('active')" style="margin-bottom:15px; display:block;">
                    <i class="fas fa-arrow-left"></i> Back
                 </button>
 
@@ -247,7 +256,6 @@
 
     <div class="overlay" onclick="document.querySelector('.sidebar-p1').classList.remove('active'); document.querySelector('.overlay').classList.remove('active');" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:900;"></div>
 
-
     <div id="task-modal" class="modal">
         <div class="modal-content task-creator">
             <h2 id="modal-heading">Add New Task</h2>
@@ -260,7 +268,7 @@
                 <div class="limit-counter" id="desc-counter">0/1000 words</div>
             </div>
             <div class="steps-section">
-                <label>Sub-tasks (Drag to reorder)</label>
+                <label>Sub-tasks</label>
                 <ul id="steps-list" class="draggable-list"></ul>
                 <div class="step-input-row">
                     <input type="text" id="new-step-input" placeholder="Add step...">
@@ -272,14 +280,8 @@
                 <input type="file" id="task-file" accept="image/*">
             </div>
             <div class="date-row" id="date-section-container">
-                <div>
-                    <label>Start Date</label>
-                    <input type="datetime-local" id="task-start">
-                </div>
-                <div>
-                    <label>Due Date</label>
-                    <input type="datetime-local" id="task-due">
-                </div>
+                <div><label>Start Date</label><input type="datetime-local" id="task-start"></div>
+                <div><label>Due Date</label><input type="datetime-local" id="task-due"></div>
             </div>
             <div class="modal-actions">
                 <button id="cancel-task" class="secondary-btn">Cancel</button>
@@ -315,8 +317,7 @@
         <div class="modal-content trace-content">
             <h2 id="trace-modal-title">Task Trace</h2>
             <div class="trace-scroll-container">
-                <div id="trace-cards-container" class="trace-grid-layout">
-                    </div>
+                <div id="trace-cards-container" class="trace-grid-layout"></div>
             </div>
             <div class="modal-actions">
                 <button id="close-trace-btn" class="main-btn">Close</button>
@@ -345,8 +346,8 @@
         document.querySelectorAll('.p3-menu-item').forEach(item => {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 900) {
-                    // Close sidebar if open
-                    document.querySelector('.sidebar-p1').classList.remove('active');
+                    document.querySelector('.details-p3').classList.add('active'); // Open P3
+                    document.querySelector('.sidebar-p1').classList.remove('active'); // Close sidebar
                     document.querySelector('.overlay').classList.remove('active');
                 }
             });
