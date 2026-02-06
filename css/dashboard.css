@@ -230,7 +230,9 @@ input:checked + .slider { background-color: #3a86ff; }
 input:checked + .slider:before { transform: translateX(26px); }
 
 
-/*  MOBILE & TABLET RESPONSIVENESS (FIXED SCROLL & NAVIGATION) */
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVENESS (FIXED SCROLL & NAVIGATION)
+   ========================================================================== */
 
 /* 1. Mobile Close Button (Hidden on Desktop) */
 .mobile-close-btn {
@@ -238,7 +240,6 @@ input:checked + .slider:before { transform: translateX(26px); }
 }
 
 @media (max-width: 900px) {
-
     /* Fix Header Layout to space out items */
     .p2-header {
         display: flex;
@@ -251,11 +252,12 @@ input:checked + .slider:before { transform: translateX(26px); }
         display: block !important;
     }
 
-    /* Ensure P3 (Right Panel) sits on top correctly */
+    /* Ensure P3 (Right Panel) sits on top correctly and respects theme */
     .details-p3 {
         z-index: 2001; /* Higher than sidebar */
-        background: #1a1a1a; /* Ensure solid background */
+        background: var(--bg-p3); /* FIXED: Uses variable for light/dark mode */
     }
+
     /* --- LAYOUT STACKING --- */
     .app-grid {
         display: block; 
