@@ -230,9 +230,7 @@ input:checked + .slider { background-color: #3a86ff; }
 input:checked + .slider:before { transform: translateX(26px); }
 
 
-/* ==========================================================================
-   MOBILE & TABLET RESPONSIVENESS (FIXED SCROLL & NAVIGATION)
-   ========================================================================== */
+/*  MOBILE & TABLET RESPONSIVENESS (FIXED SCROLL & NAVIGATION) */
 
 /* 1. Mobile Close Button (Hidden on Desktop) */
 .mobile-close-btn {
@@ -240,6 +238,24 @@ input:checked + .slider:before { transform: translateX(26px); }
 }
 
 @media (max-width: 900px) {
+
+    /* Fix Header Layout to space out items */
+    .p2-header {
+        display: flex;
+        justify-content: space-between; /* Pushes Hamburger left, Profile right */
+        align-items: center;
+    }
+
+    /* Show the Profile Button on Mobile */
+    #mobile-profile-btn {
+        display: block !important;
+    }
+
+    /* Ensure P3 (Right Panel) sits on top correctly */
+    .details-p3 {
+        z-index: 2001; /* Higher than sidebar */
+        background: #1a1a1a; /* Ensure solid background */
+    }
     /* --- LAYOUT STACKING --- */
     .app-grid {
         display: block; 
