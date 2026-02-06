@@ -154,7 +154,26 @@
 
 
         <main class="main-p2">
+
             <header class="p2-header">
+        <div style="display:flex; align-items:center;">
+            <button id="mobile-menu-btn" style="margin-right: 15px;">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div>
+                <h1 id="p2-title">Today</h1>
+                <p id="p2-subtitle">Tasks for the next 48 hours</p>
+            </div>
+        </div>
+
+        <button id="mobile-profile-btn" style="background:none; border:none; color:var(--accent); font-size:1.8rem; cursor:pointer; display:none;">
+            <i class="fas fa-user-circle"></i>
+        </button>
+    </header>
+
+<div id="mobile-overlay" class="overlay"></div>
+            <!-- <header class="p2-header">
                 <div style="display:flex; align-items:center; width:100%;">
                     <button id="mobile-menu-btn" onclick="document.querySelector('.sidebar-p1').classList.add('active'); document.querySelector('.overlay').classList.add('active');">
                         <i class="fas fa-bars"></i>
@@ -165,9 +184,9 @@
                         <p id="p2-subtitle">Tasks for the next 48 hours</p>
                     </div>
                 </div>
-            </header>
-
-            <div id="p2-task-container" class="task-list-area"></div>
+            </header> -->
+<!-- 
+            <div id="p2-task-container" class="task-list-area"></div> -->
 
             <button id="add-task-fab" class="add-task-btn">
                 <i class="fas fa-plus"></i> Add a Task
