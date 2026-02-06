@@ -17,7 +17,7 @@ const mobileOverlay = document.getElementById('mobile-overlay');
 
 // Buttons
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-const mobileProfileBtn = document.getElementById('mobile-profile-btn'); // New Button
+const mobileProfileBtn = document.getElementById('mobile-profile-btn');
 const mobileCloseP1 = document.querySelector('.mobile-close-btn');
 const mobileCloseP3 = document.getElementById('mobile-close-p3');
 
@@ -32,11 +32,10 @@ const createListBtn = document.getElementById('create-list-btn');
 
 // P2 Elements
 const p2Title = document.getElementById('p2-title');
-const p2Subtitle = document.getElementById('p2-subtitle');
 const p2Container = document.getElementById('p2-task-container');
 const addTaskFab = document.getElementById('add-task-fab');
 
-// P3 & Modals
+// Modals
 const taskModal = document.getElementById('task-modal');
 const listModal = document.getElementById('list-modal');
 const deleteModal = document.getElementById('delete-modal');
@@ -96,56 +95,66 @@ function saveData() {
     localStorage.setItem('ptm_history', JSON.stringify(taskHistory));
 }
 
-// ==================== 4. MOBILE NAVIGATION LOGIC (FIXED) ====================
+// ==================== 4. SMART HISTORY MANAGER (FIX FOR BACK BUTTON) ====================
 
-// A. Open Sidebar (P1)
-mobileMenuBtn.addEventListener('click', () => {
-    openMobileMenu(p1Sidebar);
-});
-
-// B. Open Profile/Details (P3)
-if (mobileProfileBtn) {
-    mobileProfileBtn.addEventListener('click', () => {
-        openMobileMenu(p3Sidebar);
-    });
+// A. Open Sidebar Helper
+function openSidebar(sidebar) {
+    sidebar.classList.add('active');
+    mobileOverlay.classList.add('active');
+    if (window.innerWidth <= 900) history.pushState({menuOpen: true}, null, ""); // Lock Back Button
 }
 
-// C. Close Function (Handles X button and Overlay)
-function closeMobileMenu() {
+// B. Open Modal Helper
+function openModal(modal) {
+    modal.style.display = "flex";
+    if (window.innerWidth <= 900) history.pushState({modalOpen: true}, null, ""); // Lock Back Button
+}
+
+// C. Close Everything Helper
+function closeAllOverlays() {
     p1Sidebar.classList.remove('active');
     p3Sidebar.classList.remove('active');
     mobileOverlay.classList.remove('active');
+    
+    // Close all modals
+    [taskModal, listModal, deleteModal, helpModal, traceModal].forEach(m => {
+        if(m) m.style.display = "none";
+    });
 }
 
-// D. Helper to Open and Push History State (Fixes Back Button)
-function openMobileMenu(sidebar) {
-    sidebar.classList.add('active');
-    mobileOverlay.classList.add('active');
-    // PUSH A FAKE STATE so "Back" button closes menu instead of leaving page
-    history.pushState({menuOpen: true}, null, "");
-}
-
-// E. Listen for Browser Back Button
-window.addEventListener('popstate', (event) => {
-    // When user hits back, this runs.
-    // If a menu is open, the act of "going back" naturally removes the state we pushed.
-    // We just need to visually close the menu.
-    if (p1Sidebar.classList.contains('active') || p3Sidebar.classList.contains('active')) {
-        closeMobileMenu(); 
-    }
+// D. The Magic "Back Button" Listener
+window.addEventListener('popstate', () => {
+    // When user presses Phone Back Button, we just close everything
+    closeAllOverlays();
 });
 
-// F. Handle Manual Closing (X button or Overlay)
-// If user clicks X, we must go back in history manually to keep history clean
-const manualClose = () => {
-    if (p1Sidebar.classList.contains('active') || p3Sidebar.classList.contains('active')) {
-        history.back(); // This triggers 'popstate' which runs closeMobileMenu()
+// E. Manual Close (UI Buttons) - MUST go back in history to prevent "Login Page" bug
+function manualGoBack() {
+    if (window.innerWidth <= 900) {
+        history.back(); // This triggers 'popstate' which runs closeAllOverlays()
+    } else {
+        closeAllOverlays(); // Desktop behavior
     }
-};
+}
 
-mobileCloseP1.addEventListener('click', manualClose);
-if(mobileCloseP3) mobileCloseP3.addEventListener('click', manualClose);
-mobileOverlay.addEventListener('click', manualClose);
+// Wire up UI Close Buttons
+mobileMenuBtn.addEventListener('click', () => openSidebar(p1Sidebar));
+if (mobileProfileBtn) mobileProfileBtn.addEventListener('click', () => openSidebar(p3Sidebar));
+
+mobileCloseP1.addEventListener('click', manualGoBack);
+if(mobileCloseP3) mobileCloseP3.addEventListener('click', manualGoBack);
+mobileOverlay.addEventListener('click', manualGoBack);
+
+// Modal Cancel Buttons (Now use manualGoBack logic on mobile)
+cancelTaskBtn.onclick = manualGoBack;
+cancelListBtn.onclick = manualGoBack;
+confirmDeleteNo.onclick = manualGoBack;
+document.getElementById('close-trace-btn').onclick = manualGoBack;
+document.getElementById('close-help-btn').onclick = manualGoBack;
+document.getElementById('close-details-btn').onclick = () => {
+    document.getElementById('p3-task-details').style.display = "none";
+    document.getElementById('p3-default-view').style.display = "block";
+};
 
 
 // ==================== 5. SEARCH FUNCTIONALITY ====================
@@ -168,9 +177,9 @@ taskSearchInput.addEventListener('input', (e) => {
                 taskSearchInput.value = "";
                 searchSuggestions.style.display = "none";
                 openTaskInP3(task);
-                // On mobile, close search sidebar and open P3
+                // On mobile: Swap P1 for P3. 
+                // We use history.replaceState because we are just swapping views, not adding depth.
                 if (window.innerWidth <= 900) {
-                     // We swap menus, so we replace the history state instead of adding new
                      p1Sidebar.classList.remove('active');
                      p3Sidebar.classList.add('active');
                 }
@@ -186,8 +195,6 @@ document.addEventListener('click', (e) => {
 });
 
 // ==================== 6. CORE LOGIC (Trace, Lists, Tasks) ====================
-
-// ... (Keep your History/Trace Logic exactly as it was) ...
 function checkDailyRoutineReset() {
     const lastLogin = localStorage.getItem('ptm_last_login');
     const today = new Date().toDateString();
@@ -216,29 +223,50 @@ function openTraceModal(mode) {
     title.innerText = mode === 'task' ? "Task Trace (History)" : "Routine Check (History)";
     if (taskHistory.length === 0) {
         container.innerHTML = `<p style="color:#888; text-align:center; width:100%;">No history yet.</p>`;
-        traceModal.style.display = "flex";
-        return;
+    } else {
+        taskHistory.forEach(day => {
+            const total = mode === 'task' ? day.total : day.rTotal;
+            const done = mode === 'task' ? day.done : day.rDone;
+            let percentage = total > 0 ? Math.round((done / total) * 100) : 0;
+            let colorClass = percentage > 80 ? 'circle-green' : (percentage > 60 ? 'circle-yellow' : 'circle-red');
+            const card = document.createElement('div');
+            card.className = "day-card";
+            card.innerHTML = `<div class="day-date">${new Date(day.date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div><div class="progress-circle ${colorClass}">${percentage}%</div>`;
+            container.appendChild(card);
+        });
     }
-    taskHistory.forEach(day => {
-        const total = mode === 'task' ? day.total : day.rTotal;
-        const done = mode === 'task' ? day.done : day.rDone;
-        let percentage = total > 0 ? Math.round((done / total) * 100) : 0;
-        let colorClass = percentage > 80 ? 'circle-green' : (percentage > 60 ? 'circle-yellow' : 'circle-red');
-        const card = document.createElement('div');
-        card.className = "day-card";
-        card.innerHTML = `<div class="day-date">${new Date(day.date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div><div class="progress-circle ${colorClass}">${percentage}%</div>`;
-        container.appendChild(card);
-    });
-    traceModal.style.display = "flex";
+    openModal(traceModal); // USES NEW HELPER
 }
 
-// P3 Menu Events
-btnTaskTrace.addEventListener('click', () => { openTraceModal('task'); if(window.innerWidth<=900) manualClose(); });
-btnRoutineTrace.addEventListener('click', () => { openTraceModal('routine'); if(window.innerWidth<=900) manualClose(); });
-btnUserManual.addEventListener('click', () => helpModal.style.display = "flex");
+// P3 Menu Events - CRITICAL FIX: Close menu logic handled by History now
+btnTaskTrace.addEventListener('click', () => { 
+    if(window.innerWidth<=900) {
+        // If on mobile, clicking trace should close P3 and open Trace Modal.
+        // We simulate a back press to close P3 cleanly, then open Modal
+        history.back(); // Closes P3
+        setTimeout(() => openTraceModal('task'), 100); // Opens Modal
+    } else {
+        openTraceModal('task');
+    }
+});
 
-document.getElementById('close-trace-btn').onclick = () => traceModal.style.display = "none";
-document.getElementById('close-help-btn').onclick = () => helpModal.style.display = "none";
+btnRoutineTrace.addEventListener('click', () => { 
+    if(window.innerWidth<=900) {
+        history.back(); 
+        setTimeout(() => openTraceModal('routine'), 100); 
+    } else {
+        openTraceModal('routine');
+    }
+});
+
+btnUserManual.addEventListener('click', () => {
+    if(window.innerWidth<=900) {
+        history.back(); 
+        setTimeout(() => openModal(helpModal), 100); 
+    } else {
+        openModal(helpModal);
+    }
+});
 
 
 // ==================== 7. ADD / EDIT TASK LOGIC ====================
@@ -247,7 +275,7 @@ addTaskFab.addEventListener('click', () => {
     editingTaskId = null; 
     modalHeading.innerText = currentFilter === 'routine' ? "Add Daily Routine" : "Add New Task";
     dateSection.style.display = currentFilter === 'routine' ? "none" : "flex";
-    taskModal.style.display = "flex";
+    openModal(taskModal); // USES NEW HELPER
 });
 
 function resetModal() {
@@ -284,7 +312,7 @@ saveTaskBtn.addEventListener('click', () => {
         });
     }
     saveData();
-    taskModal.style.display = "none";
+    manualGoBack(); // Closes modal correctly
     renderTasks(currentFilter);
 });
 
@@ -294,7 +322,6 @@ function renderTasks(filterType) {
     p2Container.innerHTML = "";
     updateP2Header(filterType);
     
-    // Highlight Active Sidebar Item
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (filterType.startsWith('list_')) {
         document.getElementById(`nav-list-${filterType.split('_')[1]}`)?.classList.add('active');
@@ -331,25 +358,21 @@ function renderTasks(filterType) {
             </div>
         `;
         
-        // OPEN P3 ON CLICK (Using the new openMobileMenu logic)
         el.addEventListener('click', (e) => {
             if(e.target.type !== 'checkbox' && !e.target.closest('button')) {
                 openTaskInP3(task);
-                if(window.innerWidth <= 900) openMobileMenu(p3Sidebar);
+                if(window.innerWidth <= 900) openSidebar(p3Sidebar);
             }
         });
 
-        // Checkbox
         el.querySelector('.task-check').addEventListener('change', (e) => {
             task.completed = e.target.checked;
             saveData();
             renderTasks(currentFilter);
         });
-        // Edit
         el.querySelector('.edit-btn').addEventListener('click', (e) => { e.stopPropagation(); openEditModal(task); });
-        // Delete
         el.querySelector('.del-btn').addEventListener('click', (e) => { 
-            e.stopPropagation(); taskToDeleteId = task.id; deleteModal.style.display = "flex"; 
+            e.stopPropagation(); taskToDeleteId = task.id; openModal(deleteModal); 
         });
 
         p2Container.appendChild(el);
@@ -365,7 +388,7 @@ function openEditModal(task) {
     modalHeading.innerText = "Edit Task";
     dateSection.style.display = task.isRoutine ? "none" : "flex";
     if(!task.isRoutine) document.getElementById('task-due').value = task.dueDate;
-    taskModal.style.display = "flex";
+    openModal(taskModal); // USES NEW HELPER
 }
 
 function openTaskInP3(task) {
@@ -373,13 +396,12 @@ function openTaskInP3(task) {
     document.getElementById('p3-task-details').style.display = "block";
     document.getElementById('detail-title').innerText = task.title;
     document.getElementById('detail-desc').innerText = task.desc || "No description";
-    // Populate steps...
     const stepsUl = document.getElementById('detail-steps');
     stepsUl.innerHTML = "";
     (task.steps || []).forEach(s => stepsUl.innerHTML += `<li>${s}</li>`);
     
     document.getElementById('delete-open-task-btn').onclick = () => {
-        taskToDeleteId = task.id; deleteModal.style.display = "flex";
+        taskToDeleteId = task.id; openModal(deleteModal);
     };
 }
 
@@ -387,7 +409,7 @@ function openTaskInP3(task) {
 staticNavItems.forEach(item => {
     item.addEventListener('click', () => {
         renderTasks(item.getAttribute('data-filter'));
-        if(window.innerWidth <= 900) manualClose(); // Close sidebar on selection
+        if(window.innerWidth <= 900) manualGoBack(); // Close sidebar using history logic
     });
 });
 
@@ -397,10 +419,10 @@ function updateP2Header(filter) {
 }
 
 // Lists
-createListBtn.addEventListener('click', () => { document.getElementById('list-name-input').value = ""; listModal.style.display = "flex"; });
+createListBtn.addEventListener('click', () => { document.getElementById('list-name-input').value = ""; openModal(listModal); });
 saveListBtn.addEventListener('click', () => {
     myLists.push({ id: Date.now(), name: document.getElementById('list-name-input').value });
-    saveData(); renderLists(); listModal.style.display = "none";
+    saveData(); renderLists(); manualGoBack();
 });
 function renderLists() {
     listContainer.innerHTML = "";
@@ -411,7 +433,7 @@ function renderLists() {
         div.innerHTML = `<i class="fas fa-list"></i> ${l.name}`;
         div.addEventListener('click', () => { 
             renderTasks(`list_${l.id}`); 
-            if(window.innerWidth <= 900) manualClose(); 
+            if(window.innerWidth <= 900) manualGoBack(); 
         });
         listContainer.appendChild(div);
     });
@@ -446,18 +468,3 @@ if(themeToggleInput) {
 document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
 document.getElementById('user-avatar-btn').onclick = (e) => { e.stopPropagation(); document.getElementById('user-dropdown').style.display = 'block'; };
 window.addEventListener('click', () => document.getElementById('user-dropdown').style.display = 'none');
-
-// Global Modals
-cancelTaskBtn.onclick = () => taskModal.style.display = "none";
-cancelListBtn.onclick = () => listModal.style.display = "none";
-confirmDeleteNo.onclick = () => deleteModal.style.display = "none";
-confirmDeleteYes.onclick = () => {
-    allTasks = allTasks.filter(t => t.id !== taskToDeleteId);
-    saveData(); renderTasks(currentFilter); deleteModal.style.display = "none";
-    if(window.innerWidth<=900) manualClose();
-};
-document.getElementById('mobile-close-p3').onclick = manualClose;
-document.getElementById('close-details-btn').onclick = () => {
-    document.getElementById('p3-task-details').style.display = "none";
-    document.getElementById('p3-default-view').style.display = "block";
-};
